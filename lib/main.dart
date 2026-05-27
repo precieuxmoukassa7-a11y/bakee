@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
-import 'views/patisserie_screen.dart';
+import 'views/onboarding/splash_screen.dart';
+
 void main() {
-  runApp(const MyApp());
+  runApp(const BAKEEApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class BAKEEApp extends StatelessWidget {
+  const BAKEEApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        title: 'Pâtisserie App',
-        debugShowCheckedModeBanner: false,
-        home: PatisserieScreen(),
-      );
-   }
+      debugShowCheckedModeBanner: false,
+      title: 'BAKEE',
+      theme: ThemeData(
+        primarySwatch: Colors.pink,
+        fontFamily: 'Arial',
+      ),
+      home: const SplashScreen(),
+    );
   }
+}
