@@ -7,7 +7,7 @@ class Onboarding1 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // Page en blanc
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           children: [
@@ -16,10 +16,10 @@ class Onboarding1 extends StatelessWidget {
             // 🧁 Carré pour l'icône du gâteau
             Center(
               child: Container(
-                width: 200,  // Largeur fixe du carré
-                height: 200, // Hauteur fixe du carré
+                width: 200,
+                height: 200,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF8DADA), // Fond marron clair initial
+                  color: const Color(0xFFF8DADA),
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
@@ -44,7 +44,7 @@ class Onboarding1 extends StatelessWidget {
                         child: const Icon(
                           Icons.cake,
                           size: 120,
-                          color: Color(0xFF4A2C2A), // Marron initial
+                          color: Color(0xFF4A2C2A),
                         ),
                       );
                     },
@@ -69,20 +69,21 @@ class Onboarding1 extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // 🧾 Titre
+            // 🧾 Titre (centré)
             const Text(
               "Bienvenue sur BAKEE",
+              textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF4A2C2A), // Marron initial
+                color: Color(0xFF4A2C2A),
                 letterSpacing: 1,
               ),
             ),
 
             const SizedBox(height: 10),
 
-            // 💬 Description
+            // 💬 Description (centrée)
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 30),
               child: Text(
@@ -96,14 +97,15 @@ class Onboarding1 extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 30),
+            // 🔥 Utilisation de Spacer() pour pousser le bouton vers le bas
+            const Spacer(),
 
-            // 👉 Bouton suivant (marron initial opaque)
+            // 👉 Bouton suivant (plus bas)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF4A2C2A), // Marron initial opaque
+                  backgroundColor: const Color(0xFF4A2C2A),
                   minimumSize: const Size(double.infinity, 50),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15),
@@ -143,9 +145,9 @@ class Onboarding1 extends StatelessWidget {
       duration: const Duration(milliseconds: 300),
       margin: const EdgeInsets.symmetric(horizontal: 5),
       width: isActive ? 20 : 8,
-      height: isActive ? 8 : 8,
+      height: 8,
       decoration: BoxDecoration(
-        color: isActive ? const Color(0xFF4A2C2A) : Colors.grey.shade300, // Marron initial pour le point actif
+        color: isActive ? const Color(0xFF4A2C2A) : Colors.grey.shade300,
         borderRadius: isActive ? BorderRadius.circular(4) : null,
         shape: isActive ? BoxShape.rectangle : BoxShape.circle,
       ),

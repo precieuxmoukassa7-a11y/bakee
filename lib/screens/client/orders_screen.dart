@@ -24,30 +24,30 @@ class OrdersScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: Center(
+      body: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               Icons.shopping_bag_outlined,
               size: 100,
-              color: Colors.grey.shade400,
+              color: Colors.grey,
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
             Text(
               "Aucune commande",
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Colors.grey.shade600,
+                color: Colors.grey,
               ),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
             Text(
               "Vos commandes apparaîtront ici",
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey.shade500,
+                color: Colors.grey,
               ),
             ),
           ],

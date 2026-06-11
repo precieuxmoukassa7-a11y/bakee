@@ -11,6 +11,7 @@ import 'patisseries_screen.dart';
 import 'order_screen.dart';
 import 'settings_screen.dart';
 import 'event_detail_screen.dart';
+import 'login_screen.dart'; // 🔥 AJOUT POUR LA CONNEXION
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -24,6 +25,7 @@ class _HomeClientScreenState extends State<HomeScreen> {
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
   int _cartCount = 0;
+  final ScrollController _scrollController = ScrollController();
 
   final List<CategoryModel> _categories = [
     CategoryModel(icon: Icons.cake, label: "Gâteaux", color: const Color(0xFF4A2C2A)),
@@ -34,7 +36,6 @@ class _HomeClientScreenState extends State<HomeScreen> {
     CategoryModel(icon: Icons.egg_alt, label: "Tartes", color: const Color(0xFFFF6B6B)),
   ];
 
-  // ✅ Utilisation UNIQUEMENT de EventData
   final List<EventData> _events = [
     EventData(
       icon: Icons.celebration,
@@ -147,6 +148,13 @@ class _HomeClientScreenState extends State<HomeScreen> {
     _loadCartCount();
   }
 
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadCartCount() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -183,13 +191,14 @@ class _HomeClientScreenState extends State<HomeScreen> {
         .toList();
   }
 
+  // 🔥 MÉTHODE DE DÉCONNEXION MODIFIÉE - Redirige vers LoginScreen
   Future<void> _logout(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
     if (mounted) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const RoleChoiceScreen()),
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
       );
     }
   }
@@ -205,13 +214,8 @@ class _HomeClientScreenState extends State<HomeScreen> {
     );
   }
 
-  void _navigateToScreen(Widget screen) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => screen),
-    ).then((_) {
-      _loadCartCount();
-    });
+  void _updateCartCount() {
+    _loadCartCount();
   }
 
   @override
@@ -240,7 +244,7 @@ class _HomeClientScreenState extends State<HomeScreen> {
                     context,
                     MaterialPageRoute(builder: (_) => const CartScreen()),
                   );
-                  _loadCartCount();
+                  _updateCartCount();
                 },
                 icon: const Icon(Icons.shopping_cart_outlined, color: Color(0xFF4A2C2A)),
               ),
@@ -270,31 +274,46 @@ class _HomeClientScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: _buildBody(),
-      bottomNavigationBar: Container(
-        margin: const EdgeInsets.all(16),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: const Color(0xFF4A2C2A),
-          borderRadius: BorderRadius.circular(30),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.2),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
+      body: Stack(
+        children: [
+          // Contenu principal avec padding en bas pour la barre flottante
+          Padding(
+            padding: const EdgeInsets.only(bottom: 70),
+            child: _getBody(),
+          ),
+          // Barre de navigation flottante - Sans carré blanc
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF4A2C2A),
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.3),
+                    blurRadius: 15,
+                    spreadRadius: 2,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildNavItem(Icons.home, "Accueil", 0),
+                  _buildNavItem(Icons.shopping_bag, "Produits", 1),
+                  _buildNavItem(Icons.bakery_dining, "Pâtisseries", 2),
+                  _buildNavItem(Icons.receipt, "Commande", 3),
+                  _buildNavItem(Icons.settings, "Paramètre", 4),
+                ],
+              ),
             ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(Icons.home, "Accueil", 0),
-            _buildNavItem(Icons.shopping_bag, "Produits", 1),
-            _buildNavItem(Icons.bakery_dining, "Pâtisseries", 2),
-            _buildNavItem(Icons.receipt, "Commande", 3),
-            _buildNavItem(Icons.settings, "Paramètre", 4),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -306,21 +325,13 @@ class _HomeClientScreenState extends State<HomeScreen> {
         setState(() {
           _selectedIndex = index;
         });
-        switch (index) {
-          case 0:
-            break;
-          case 1:
-            _navigateToScreen(const ProductsScreen());
-            break;
-          case 2:
-            _navigateToScreen(const PatisseriesScreen());
-            break;
-          case 3:
-            _navigateToScreen(const OrderScreen());
-            break;
-          case 4:
-            _navigateToScreen(const SettingsScreen());
-            break;
+        // Faire défiler vers le haut quand on revient à l'accueil
+        if (index == 0 && _scrollController.hasClients) {
+          _scrollController.animateTo(
+            0,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
         }
       },
       child: AnimatedContainer(
@@ -348,8 +359,8 @@ class _HomeClientScreenState extends State<HomeScreen> {
               const SizedBox(width: 6),
               Text(
                 label,
-                style: TextStyle(
-                  color: const Color(0xFF4A2C2A),
+                style: const TextStyle(
+                  color: Color(0xFF4A2C2A),
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
                 ),
@@ -361,8 +372,26 @@ class _HomeClientScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildBody() {
+  Widget _getBody() {
+    switch (_selectedIndex) {
+      case 0:
+        return _buildHomeContent();
+      case 1:
+        return const ProductsScreen();
+      case 2:
+        return const PatisseriesScreen();
+      case 3:
+        return const OrderScreen();
+      case 4:
+        return const SettingsScreen();
+      default:
+        return _buildHomeContent();
+    }
+  }
+
+  Widget _buildHomeContent() {
     return SingleChildScrollView(
+      controller: _scrollController,
       physics: const BouncingScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -377,6 +406,7 @@ class _HomeClientScreenState extends State<HomeScreen> {
           _buildCategoriesSection(),
           const SizedBox(height: 20),
           _buildPopularProductsSection(),
+          const SizedBox(height: 30),
         ],
       ),
     );
@@ -385,50 +415,146 @@ class _HomeClientScreenState extends State<HomeScreen> {
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(15),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
+      child: GestureDetector(
+        onTap: () {
+          _showSearchDialog();
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: TextField(
+            controller: _searchController,
+            readOnly: true,
+            decoration: InputDecoration(
+              hintText: "Rechercher une pâtisserie...",
+              hintStyle: TextStyle(color: Colors.grey.shade500),
+              prefixIcon: const Icon(Icons.search, color: Color(0xFF4A2C2A)),
+              suffixIcon: _searchQuery.isNotEmpty
+                  ? IconButton(
+                icon: const Icon(Icons.clear, color: Colors.grey),
+                onPressed: () {
+                  setState(() {
+                    _searchQuery = '';
+                    _searchController.clear();
+                  });
+                },
+              )
+                  : null,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
+                borderSide: BorderSide.none,
+              ),
+              filled: true,
+              fillColor: Colors.white,
+              contentPadding: const EdgeInsets.symmetric(vertical: 12),
             ),
-          ],
-        ),
-        child: TextField(
-          controller: _searchController,
-          onChanged: (value) {
-            setState(() {
-              _searchQuery = value;
-            });
-          },
-          decoration: InputDecoration(
-            hintText: "Rechercher une pâtisserie...",
-            hintStyle: TextStyle(color: Colors.grey.shade500),
-            prefixIcon: const Icon(Icons.search, color: Color(0xFF4A2C2A)),
-            suffixIcon: _searchQuery.isNotEmpty
-                ? IconButton(
-              icon: const Icon(Icons.clear, color: Colors.grey),
-              onPressed: () {
-                setState(() {
-                  _searchQuery = '';
-                  _searchController.clear();
-                });
-              },
-            )
-                : null,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15),
-              borderSide: BorderSide.none,
-            ),
-            filled: true,
-            fillColor: Colors.white,
-            contentPadding: const EdgeInsets.symmetric(vertical: 12),
           ),
         ),
       ),
+    );
+  }
+
+  void _showSearchDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        String tempQuery = '';
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                height: MediaQuery.of(context).size.height * 0.8,
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            autofocus: true,
+                            onChanged: (value) {
+                              tempQuery = value;
+                              setStateDialog(() {});
+                            },
+                            decoration: InputDecoration(
+                              hintText: "Rechercher...",
+                              prefixIcon: const Icon(Icons.search, color: Color(0xFF4A2C2A)),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey.shade100,
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text("Fermer"),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: tempQuery.isEmpty
+                          ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.search, size: 80, color: Colors.grey.shade400),
+                            const SizedBox(height: 16),
+                            Text(
+                              "Recherchez vos pâtisseries préférées",
+                              style: TextStyle(color: Colors.grey.shade600),
+                            ),
+                          ],
+                        ),
+                      )
+                          : ListView.builder(
+                        itemCount: _popularProducts
+                            .where((p) => p.name.toLowerCase().contains(tempQuery.toLowerCase()))
+                            .length,
+                        itemBuilder: (context, index) {
+                          final products = _popularProducts
+                              .where((p) => p.name.toLowerCase().contains(tempQuery.toLowerCase()))
+                              .toList();
+                          final product = products[index];
+                          return ListTile(
+                            leading: const Icon(Icons.cake, color: Color(0xFF4A2C2A)),
+                            title: Text(product.name),
+                            subtitle: Text(product.formattedPrice),
+                            onTap: () {
+                              Navigator.pop(context);
+                              setState(() {
+                                _searchQuery = product.name;
+                                _searchController.text = product.name;
+                              });
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -480,7 +606,7 @@ class _HomeClientScreenState extends State<HomeScreen> {
                     ),
                     const TextSpan(
                       text: " gâteaux disponibles",
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 16,
                         color: Colors.white,
                       ),
@@ -507,7 +633,6 @@ class _HomeClientScreenState extends State<HomeScreen> {
     );
   }
 
-  // ✅ SECTION DES ÉVÉNEMENTS CORRIGÉE
   Widget _buildEventsSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -600,7 +725,9 @@ class _HomeClientScreenState extends State<HomeScreen> {
               ),
               TextButton(
                 onPressed: () {
-                  _navigateToScreen(const ProductsScreen());
+                  setState(() {
+                    _selectedIndex = 1;
+                  });
                 },
                 child: const Text(
                   "Voir tout",
@@ -732,9 +859,9 @@ class CategoryModel {
   });
 }
 
-// ================= WIDGET ÉVÉNEMENT (CORRIGÉ - Utilise EventData) =================
+// ================= WIDGET ÉVÉNEMENT =================
 class EventCard extends StatelessWidget {
-  final EventData event;  // ⭐ Utilise EventData, PAS EventModel
+  final EventData event;
 
   const EventCard({super.key, required this.event});
 

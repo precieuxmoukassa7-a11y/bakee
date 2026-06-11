@@ -1,57 +1,81 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'patissier_dashboard_screen.dart';
-import '../../role_choice_screen.dart';
+import 'patissier_screen.dart';
+import 'patissier_signup_screen.dart';
 
-class PatissierScreen extends StatefulWidget {
-  const PatissierScreen({super.key});
+class PatissierLoginScreen extends StatefulWidget {
+  const PatissierLoginScreen({super.key});
 
   @override
-  State<PatissierScreen> createState() => _PatissierLoginScreenState();
+  State<PatissierLoginScreen> createState() => _PatissierLoginScreenState();
 }
 
-class _PatissierLoginScreenState extends State<PatissierScreen> {
+class _PatissierLoginScreenState extends State<PatissierLoginScreen> {
+  final _formKey = GlobalKey<FormState>();
+
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _isLoading = false;
-  bool _isPasswordVisible = false;
 
-  // Identifiants par défaut (à remplacer par une API)
-  final String _defaultEmail = "patissier@bakee.com";
-  final String _defaultPassword = "123456";
+  bool _isPasswordVisible = false;
+  bool _isLoading = false;
+
+  final FocusNode _emailFocus = FocusNode();
+  final FocusNode _passwordFocus = FocusNode();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _emailFocus.dispose();
+    _passwordFocus.dispose();
+    super.dispose();
+  }
 
   Future<void> _login() async {
-    if (_emailController.text.trim().isEmpty ||
-        _passwordController.text.isEmpty) {
-      _showSnackBar("Veuillez remplir tous les champs", Colors.red);
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     setState(() {
       _isLoading = true;
     });
 
-    await Future.delayed(const Duration(seconds: 1));
+    // Simuler un appel API
+    await Future.delayed(const Duration(seconds: 2));
 
-    if (_emailController.text.trim() == _defaultEmail &&
-        _passwordController.text == _defaultPassword) {
-
+    try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('is_patissier_logged', true);
-      await prefs.setString('patissier_email', _emailController.text.trim());
-      await prefs.setString('user_role', 'patissier');
+      String? savedEmail = prefs.getString('patissier_email');
 
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const PatissierScreen()),
-        );
+      // Vérification simple (à remplacer par une vraie authentification)
+      if (savedEmail != null && savedEmail == _emailController.text.trim().toLowerCase()) {
+        await prefs.setBool('is_patissier_logged', true);
+
+        if (mounted) {
+          _showSnackBar("Connexion réussie ! 🎉", Colors.green);
+
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (mounted) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const PatissierScreen()),
+              );
+            }
+          });
+        }
+      } else {
+        if (mounted) {
+          _showSnackBar("Email ou mot de passe incorrect", Colors.red);
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
-    } else {
-      _showSnackBar("Email ou mot de passe incorrect", Colors.red);
-      setState(() {
-        _isLoading = false;
-      });
+    } catch (e) {
+      if (mounted) {
+        _showSnackBar("Erreur lors de la connexion", Colors.red);
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -61,6 +85,8 @@ class _PatissierLoginScreenState extends State<PatissierScreen> {
         content: Text(message),
         backgroundColor: color,
         behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(10),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -68,99 +94,149 @@ class _PatissierLoginScreenState extends State<PatissierScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFDECEC),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8DADA),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.arrow_back, color: Color(0xFF4A2C2A), size: 20),
+          ),
+        ),
+        title: const Text(
+          "Connexion Pâtissier",
+          style: TextStyle(
+            color: Color(0xFF4A2C2A),
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        padding: const EdgeInsets.all(24),
+        child: Form(
+          key: _formKey,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 40),
 
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8DADA),
-                  shape: BoxShape.circle,
+              // Logo et titre
+              Center(
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8DADA),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.orange.shade100,
+                            blurRadius: 20,
+                            spreadRadius: 5,
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.bakery_dining,
+                        size: 50,
+                        color: Color(0xFF4A2C2A),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      "Bon retour !",
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF4A2C2A),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      "Connectez-vous à votre espace pâtissier",
+                      style: TextStyle(fontSize: 14, color: Colors.black54),
+                    ),
+                  ],
                 ),
-                child: const Icon(
-                  Icons.bakery_dining,
-                  size: 60,
-                  color: Color(0xFF4A2C2A),
-                ),
-              ),
-
-              const SizedBox(height: 30),
-
-              const Text(
-                "Espace Pâtissier",
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF4A2C2A),
-                ),
-              ),
-
-              const SizedBox(height: 10),
-
-              const Text(
-                "Connectez-vous à votre espace",
-                style: TextStyle(fontSize: 14, color: Colors.black54),
               ),
 
               const SizedBox(height: 40),
 
-              TextField(
+              // Email
+              _buildTextField(
                 controller: _emailController,
+                focusNode: _emailFocus,
+                label: "Email professionnel",
+                hint: "contact@mapatisserie.com",
+                icon: Icons.email_outlined,
                 keyboardType: TextInputType.emailAddress,
-                decoration: InputDecoration(
-                  labelText: "Email",
-                  hintText: "patissier@bakee.com",
-                  prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF4A2C2A)),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
-                    borderSide: BorderSide.none,
-                  ),
-                  filled: true,
-                  fillColor: Colors.white,
-                ),
+                textInputAction: TextInputAction.next,
+                onSubmitted: (_) => _passwordFocus.requestFocus(),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Veuillez entrer votre email";
+                  }
+                  if (!value.contains('@') || !value.contains('.')) {
+                    return "Email invalide";
+                  }
+                  return null;
+                },
               ),
 
               const SizedBox(height: 16),
 
-              TextField(
+              // Mot de passe
+              _buildPasswordField(
                 controller: _passwordController,
-                obscureText: !_isPasswordVisible,
-                decoration: InputDecoration(
-                  labelText: "Mot de passe",
-                  prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF4A2C2A)),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
-                      color: Colors.grey,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _isPasswordVisible = !_isPasswordVisible;
-                      });
-                    },
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
-                    borderSide: BorderSide.none,
-                  ),
-                  filled: true,
-                  fillColor: Colors.white,
-                ),
+                focusNode: _passwordFocus,
+                label: "Mot de passe",
+                isVisible: _isPasswordVisible,
+                onVisibilityToggle: () {
+                  setState(() {
+                    _isPasswordVisible = !_isPasswordVisible;
+                  });
+                },
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => _login(),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Veuillez entrer votre mot de passe";
+                  }
+                  if (value.length < 6) {
+                    return "Mot de passe trop court";
+                  }
+                  return null;
+                },
               ),
 
               const SizedBox(height: 30),
 
+              // Bouton connexion
               _isLoading
-                  ? const Center(child: CircularProgressIndicator(color: Color(0xFF4A2C2A)))
+                  ? const Center(
+                child: Column(
+                  children: [
+                    CircularProgressIndicator(color: Color(0xFF4A2C2A)),
+                    SizedBox(height: 10),
+                    Text("Connexion en cours...", style: TextStyle(color: Colors.black54)),
+                  ],
+                ),
+              )
                   : ElevatedButton(
                 onPressed: _login,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF4A2C2A),
+                  foregroundColor: Colors.white,
                   minimumSize: const Size(double.infinity, 55),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15),
@@ -168,30 +244,148 @@ class _PatissierLoginScreenState extends State<PatissierScreen> {
                 ),
                 child: const Text(
                   "Se connecter",
-                  style: TextStyle(fontSize: 16, color: Colors.white),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
               ),
 
               const SizedBox(height: 20),
 
+              // Séparateur
+              Row(
+                children: [
+                  Expanded(child: Divider(color: Colors.grey.shade300)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text("OU", style: TextStyle(color: Colors.grey.shade500)),
+                  ),
+                  Expanded(child: Divider(color: Colors.grey.shade300)),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              // Lien vers inscription
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text("Vous n'avez pas de compte ? "),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
+                  const Text("Pas encore de compte ? ", style: TextStyle(fontSize: 14, color: Colors.black54)),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (_) => const PatissierSignupScreen()),
+                      );
                     },
                     child: const Text(
                       "Créer un compte",
-                      style: TextStyle(color: Color(0xFF4A2C2A), fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF4A2C2A),
+                        decoration: TextDecoration.underline,
+                      ),
                     ),
                   ),
                 ],
               ),
+
+              const SizedBox(height: 30),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required FocusNode focusNode,
+    required String label,
+    required String hint,
+    required IconData icon,
+    TextInputType keyboardType = TextInputType.text,
+    TextInputAction textInputAction = TextInputAction.next,
+    Function(String)? onSubmitted,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      focusNode: focusNode,
+      keyboardType: keyboardType,
+      textInputAction: textInputAction,
+      onFieldSubmitted: onSubmitted,
+      validator: validator,
+      style: const TextStyle(fontSize: 15),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Color(0xFF4A2C2A)),
+        hintText: hint,
+        hintStyle: TextStyle(color: Colors.grey.shade400),
+        prefixIcon: Icon(icon, color: const Color(0xFF4A2C2A)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFF4A2C2A), width: 2),
+        ),
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      ),
+    );
+  }
+
+  Widget _buildPasswordField({
+    required TextEditingController controller,
+    required FocusNode focusNode,
+    required String label,
+    required bool isVisible,
+    required VoidCallback onVisibilityToggle,
+    TextInputAction textInputAction = TextInputAction.next,
+    Function(String)? onSubmitted,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      focusNode: focusNode,
+      obscureText: !isVisible,
+      keyboardType: TextInputType.visiblePassword,
+      textInputAction: textInputAction,
+      onFieldSubmitted: onSubmitted,
+      validator: validator,
+      style: const TextStyle(fontSize: 15),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Color(0xFF4A2C2A)),
+        prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF4A2C2A)),
+        suffixIcon: IconButton(
+          icon: Icon(
+            isVisible ? Icons.visibility_off : Icons.visibility,
+            color: Colors.grey.shade500,
+          ),
+          onPressed: onVisibilityToggle,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFF4A2C2A), width: 2),
+        ),
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
       ),
     );
   }

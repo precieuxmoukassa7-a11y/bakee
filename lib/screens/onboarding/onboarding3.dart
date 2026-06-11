@@ -84,9 +84,10 @@ class Onboarding3 extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // 🧾 Titre
+            // 🧾 Titre (centré)
             const Text(
               "Paiement Sécurisé",
+              textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -97,7 +98,7 @@ class Onboarding3 extends StatelessWidget {
 
             const SizedBox(height: 10),
 
-            // 💬 Description
+            // 💬 Description (centrée)
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 30),
               child: Text(
@@ -111,9 +112,10 @@ class Onboarding3 extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 30),
+            // 🔥 Utilisation de Spacer() pour pousser le bouton vers le bas
+            const Spacer(),
 
-            // 👉 Bouton commencer (marron initial opaque)
+            // 👉 Bouton commencer (plus bas)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: ElevatedButton(

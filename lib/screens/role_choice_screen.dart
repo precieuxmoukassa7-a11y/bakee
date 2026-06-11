@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'onboarding/auth/signup_screen.dart';
+import 'client/signup_screen.dart';
 import 'patissier/patissier_signup_screen.dart';
 
 class RoleChoiceScreen extends StatelessWidget {
@@ -26,22 +26,12 @@ class RoleChoiceScreen extends StatelessWidget {
                 child: const Icon(Icons.cake, size: 60, color: Color(0xFF4A2C2A)), // Marron initial
               ),
 
-              const SizedBox(height: 30),
-
-              const Text(
-                "Bienvenue sur BAKEE",
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF4A2C2A), // Marron initial
-                ),
-              ),
-
               const SizedBox(height: 10),
 
+              // "Choisissez votre profil" uniquement (Bienvenue supprimé)
               const Text(
                 "Choisissez votre profil",
-                style: TextStyle(fontSize: 14, color: Colors.black54),
+                style: TextStyle(fontSize: 16, color: Colors.black54),
               ),
 
               const SizedBox(height: 50),

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../client/home_screen.dart';
+import 'login_screen.dart';
+import 'home_screen.dart';
+import 'login_screen.dart'; // 🔥 AJOUT DE L'IMPORT
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -518,7 +521,7 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
-  // Étape 1: Nom et prénom (avec lien de connexion)
+  // Étape 1: Nom et prénom (avec lien de connexion vers LoginScreen)
   Widget _buildStep1() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -582,7 +585,8 @@ class _SignupScreenState extends State<SignupScreen> {
           textInputAction: TextInputAction.done,
           onSubmitted: (_) => _nextStep(),
         ),
-        // 🔥 NOUVEAU : Lien de connexion
+
+        // 🔥 LIEN DE CONNEXION MODIFIÉ - Redirige vers LoginScreen
         const SizedBox(height: 24),
         Center(
           child: Row(
@@ -594,8 +598,11 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
               GestureDetector(
                 onTap: () {
-                  // Retourner à l'écran de choix du rôle pour se connecter
-                  Navigator.pop(context);
+                  // ✅ Rediriger vers l'écran de connexion
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  );
                 },
                 child: const Text(
                   "Se connecter",
